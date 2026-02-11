@@ -54,7 +54,9 @@ sub script_wordpress_php_optional_modules
 return ( "curl", "ssh2", "pecl-ssh2", "date",
          "hash", "imagick", "pecl-imagick", 
          "iconv", "mbstring", "openssl", "zip",
-         "posix", "sockets", "tokenizer" );
+         "posix", "sockets", "tokenizer",
+         "intl", "libxml", "dom", "SimpleXML",
+         "xmlreader", "bcmath", "fileinfo" );
 }
 
 sub script_wordpress_php_vars

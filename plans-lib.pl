@@ -274,6 +274,10 @@ $d->{'aliasdomslimit'} = $plan->{'aliasdomslimit'} eq '' ? '*' :
 			  $plan->{'aliasdomslimit'};
 $d->{'realdomslimit'} = $plan->{'realdomslimit'} eq '' ? '*' :
 			 $plan->{'realdomslimit'};
+$d->{'subdomslimit'} = $plan->{'subdomslimit'} eq '' ? '*' :
+			 $plan->{'subdomslimit'};
+$d->{'topdomslimit'} = $plan->{'topdomslimit'} eq '' ? '*' :
+			 $plan->{'topdomslimit'};
 $d->{'mongrelslimit'} = $plan->{'mongrelslimit'};
 $d->{'nodbname'} = $plan->{'nodbname'};
 $d->{'norename'} = $plan->{'norename'};

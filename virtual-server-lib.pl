@@ -157,7 +157,7 @@ $scripts_unavail_file = &cache_file_path("scriptsunavail");
 $default_content_dir = "$module_root_directory/default";
 
 @reseller_maxes = ("doms", "topdoms", "aliasdoms", "realdoms", "quota", "mailboxes", "aliases", "dbs", "bw");
-@plan_maxes = ("mailbox", "alias", "dbs", "doms", "aliasdoms", "realdoms", "bw",
+@plan_maxes = ("mailbox", "alias", "dbs", "doms", "aliasdoms", "realdoms", "subdoms", "topdoms", "bw",
                $virtualmin_pro ? ( "mongrels" ) : ( ));
 @plan_restrictions = ('nodbname', 'norename', 'forceunder', 'safeunder',
 		      'migrate');
@@ -468,15 +468,16 @@ if ($virtual_server::virtualmin_pro) {
 	}
 else {
 	# Do not show 'Reseller settings (Pro Only)' section and options in GPL
-	push(@forbidden_keys,
-	     'line6.5',
-	     'reseller_theme',
-	     'reseller_modules',
-	     'reseller_unix',
-	     'reseller_pre_command',
-	     'reseller_post_command',
-	     'from_reseller',
-	    );
+	# Do not show 'Reseller settings (Pro Only)' section and options in GPL
+	# push(@forbidden_keys,
+	#      'line6.5',
+	#      'reseller_theme',
+	#      'reseller_modules',
+	#      'reseller_unix',
+	#      'reseller_pre_command',
+	#      'reseller_post_command',
+	#      'from_reseller',
+	#     );
 	}
 
 # Remove forbidden from display

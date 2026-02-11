@@ -3090,7 +3090,7 @@ return &master_admin();
 # Returns 1 if the user can create new top-level servers or child servers
 sub can_create_master_servers
 {
-return $access{'create'} == 1;
+return $access{'create'} == 1 || $access{'create'} == 2;
 }
 
 # Returns 1 if the user can create new child servers
@@ -7678,13 +7678,20 @@ if (!$access{'reseller'}) {
 	local $limit = $f eq "doms" ? $parent->{'domslimit'} :
 		       $f eq "aliasdoms" ? $parent->{'aliasdomslimit'} :
 		       $f eq "realdoms" ? $parent->{'realdomslimit'} :
+		       $f eq "subdoms" ? $parent->{'subdomslimit'} :
+		       $f eq "topdoms" ? $parent->{'topdomslimit'} :
 		       $f eq "mailboxes" ? $parent->{'mailboxlimit'} :
 		       $f eq "aliases" ? $parent->{'aliaslimit'} :
-		       $f eq "dbs" ? $parent->{'dbslimit'} : undef;
+		       $f eq "dbs" ? $parent->{'dbslimit'} :
+		       $f eq "quota" ? $parent->{'quota'} :
+		       $f eq "uquota" ? $parent->{'uquota'} :
+		       $f eq "bw" ? $parent->{'bw_limit'} : undef;
 	$limit = undef if ($limit eq "*");
 	if ($limit ne "") {
 		# A server-owner-level limit is in force .. check it
-		local $got = &count_domain_feature($f, @doms);
+		local $got = ($f eq "quota" || $f eq "uquota" || $f eq "bw") ?
+				&count_domain_usage_feature($f, @doms) :
+				&count_domain_feature($f, @doms);
 		if ($got >= $limit) {
 			return (0, 0, $limit);
 			}
@@ -7701,6 +7708,30 @@ if (!$access{'reseller'}) {
 		else {
 			$userleft = $parent->{'domslimit'} - $got;
 			$usermax = $parent->{'domslimit'};
+			}
+		}
+	if ($f eq "subdoms" && $parent->{'domslimit'} &&
+	    $parent->{'domslimit'} ne '*') {
+		# Also check against total domains limit
+		local $got = &count_domain_feature("doms", @doms);
+		if ($got >= $parent->{'domslimit'}) {
+			return (0, 0, $parent->{'domslimit'});
+			}
+		else {
+			local $left = $parent->{'domslimit'} - $got;
+			$userleft = $left < $userleft || $userleft < 0 ? $left : $userleft;
+			}
+		}
+	if ($f eq "topdoms" && $parent->{'domslimit'} &&
+	    $parent->{'domslimit'} ne '*') {
+		# Also check against total domains limit
+		local $got = &count_domain_feature("doms", @doms);
+		if ($got >= $parent->{'domslimit'}) {
+			return (0, 0, $parent->{'domslimit'});
+			}
+		else {
+			local $left = $parent->{'domslimit'} - $got;
+			$userleft = $left < $userleft || $userleft < 0 ? $left : $userleft;
 			}
 		}
 	($reseller) = split(/\s+/, $parent->{'reseller'});
@@ -7751,6 +7782,27 @@ if ($reseller && defined(&get_reseller_domains)) {
 return ($userleft, 0, $usermax);
 }
 
+sub count_domain_usage_feature
+{
+local ($f, @doms) = @_;
+local $rv = 0;
+foreach my $d (@doms) {
+	if ($f eq "quota" || $f eq "uquota") {
+		if (!$d->{'parent'}) {
+			my ($home, $mail, $db) = &get_domain_quota($d);
+			$rv += $home;
+			}
+		}
+	elsif ($f eq "bw") {
+		if (!$d->{'parent'}) {
+			local @bw_usage = &get_bandwidth_usage($d);
+			$rv += $bw_usage[0];
+			}
+		}
+	}
+return $rv;
+}
+
 # count_domain_feature(feature, &domain, ...)
 # Returns the total for some feature in the given domains. May return -1 if
 # any are set to unlimited (ie. quotas)
@@ -7796,6 +7848,9 @@ foreach $d (@doms) {
 		}
 	elsif ($f eq "topdoms") {
 		$rv++ if (!$d->{'parent'});
+		}
+	elsif ($f eq "subdoms") {
+		$rv++ if ($d->{'parent'});
 		}
 	else {
 		$rv++ if ($d->{$f});
@@ -12904,7 +12959,8 @@ if ($d->{'parent'}) {
 if (&has_group_quotas()) {
 	# Check server group quota
 	my $bsize = &quota_bsize("home");
-	my ($homequota, $mailquota) = &get_domain_quota($d);
+	my @alldoms = &get_domain_by("user", $d->{'user'});
+	my $homequota = &count_domain_usage_feature("quota", @alldoms);
 	if ($d->{'quota'} && $homequota >= $d->{'quota'}) {
 		return &text('setup_overgroupquota',
 			     &nice_size($d->{'quota'}*$bsize),

@@ -3501,7 +3501,7 @@ return $cmd;
 sub script_migrated_disallowed
 {
 my ($migrated) = @_;
-return $migrated && !$virtualmin_pro
+return 0;
 }
 
 # script_migrated_status()
