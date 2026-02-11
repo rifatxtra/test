@@ -99,7 +99,31 @@ else
     fi
 fi
 
-# 4. Restart Webmin to load changes
+# 4. Fix SQL Configuration (Disable Mail/Spam in DB)
+echo "Applying SQL configuration fixes..."
+CONFIG_FILE="/etc/webmin/virtual-server/config"
+if [ -f "$CONFIG_FILE" ]; then
+    # Disable mysql_mail
+    if grep -q "mysql_mail=" "$CONFIG_FILE"; then
+        sed -i 's/^mysql_mail=.*/mysql_mail=0/' "$CONFIG_FILE"
+    else
+        echo "mysql_mail=0" >> "$CONFIG_FILE"
+    fi
+    # Disable spam_user_db
+    if grep -q "spam_user_db=" "$CONFIG_FILE"; then
+        sed -i 's/^spam_user_db=.*/spam_user_db=0/' "$CONFIG_FILE"
+    else
+        echo "spam_user_db=0" >> "$CONFIG_FILE"
+    fi
+    # Disable spam_alias_db
+    if grep -q "spam_alias_db=" "$CONFIG_FILE"; then
+        sed -i 's/^spam_alias_db=.*/spam_alias_db=0/' "$CONFIG_FILE"
+    else
+        echo "spam_alias_db=0" >> "$CONFIG_FILE"
+    fi
+fi
+
+# 5. Restart Webmin to load changes
 echo "Restarting Webmin..."
 /etc/webmin/restart
 

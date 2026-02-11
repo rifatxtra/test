@@ -51,3 +51,29 @@ To install this custom version on a fresh VPS (Ubuntu/Debian/CentOS/AlmaLinux):
 2. Removes the stock `virtual-server` module.
 3. Installs this custom modified version in its place.
 4. Restarts Webmin.
+
+### Important: specific to Google Cloud / AWS
+
+Google Cloud blocks port 10000 by default. You **must** open it in your Cloud Console:
+
+1. Go to **VPC Network -> Firewall**.
+2. Create a Firewall Rule (e.g., named `allow-webmin`).
+3. Set **Targets** to "All instances in the network".
+4. Set **Source IP ranges** to `0.0.0.0/0`.
+5. Set **Protocols and ports** to `tcp:10000`.
+6. Save.
+
+7. Save.
+
+Then access via: `https://YOUR_EXTERNAL_IP:10000`
+
+### Login Credentials
+
+- **Username**: `root`
+- **Password**: Your VPS root password.
+
+If you don't know your root password (common on Google Cloud / AWS), set it via SSH:
+
+```bash
+sudo passwd root
+```
